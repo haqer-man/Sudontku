@@ -17,7 +17,7 @@ while True:
         elif event.type == pg.KEYDOWN:
             key = pg.key.get_pressed()
             if key[pg.K_RIGHT]:
-                screen.fill((255,255,255))
+                screen.fill((255, 255, 255))
                 font_str = pg.font.match_font(fonts[i])
                 font = pg.font.Font(font_str, 36)
                 for j in range(9):
@@ -26,15 +26,16 @@ while True:
                     screen.blit(text, textpos)
 
                 text = font.render("You win!", True, (0, 0, 0))
-                textpos = text.get_rect(centerx=screen.get_width()/2, y=screen.get_height()-100)
+                textpos = text.get_rect(
+                    centerx=screen.get_width()/2, y=screen.get_height()-100)
                 screen.blit(text, textpos)
                 print(fonts[i])
-                
+
                 pg.display.flip()
                 i += 1
             elif key[pg.K_LEFT]:
                 i -= 1
-            
+
 '''
 win:
 
