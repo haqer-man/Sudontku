@@ -80,7 +80,7 @@ class Grid:
             N (int): a number representing the dimensions
             of the grid
             K (int): a number representing the amount of
-            numbers in the grid to begin
+            numbers the user will start with
         """
         self.selected = (-1, -1)
         self.focused = (-1, -1)
@@ -95,7 +95,9 @@ class Grid:
         self.mask = [[0 for _ in range(N)] for _ in range(N)]
 
     def fill_values(self) -> None:
-        """Assigns values to grid, solution, and mask."""
+        """Assigns values to solution, mask, and grid, where solution
+        is the solution to the puzzle, mask is an array mask representing
+        which values are immutable, and grid is the playing grid."""
         self.fill_diagonal()
 
         self.fill_remaining(self.sqrt_N - 1, 0)
@@ -104,11 +106,11 @@ class Grid:
 
     def fill_diagonal(self) -> None:
         """Generates values to fill the top left, center,
-        and bottom right blocks."""
+        and bottom right subgrids."""
         for i in range(0, self.N, self.sqrt_N):
             self.fill_block(i, i)
 
-    def fill_block(self, row: int, column: int):
+    def fill_block(self, row: int, column: int) -> None:
         """Fills a √N x √N block of values.
 
         Args:
@@ -135,8 +137,8 @@ class Grid:
             y (int): starting y coordinate
 
         Returns:
-            bool: whether the function has finished
-            recurring.
+            bool: True if the base condition has been
+            reached, False otherwise
         """
         if y == self.N - 1 and x == self.N:
             return True
@@ -162,9 +164,9 @@ class Grid:
         only once in that column, row, and subgrid/block.
 
         Args:
-            x (int): x coordinate (1-N)
-            y (int): y coordinate (1-N)
-            num (int): number to check (1-N)
+            x (int): x coordinate
+            y (int): y coordinate
+            num (int): number to check
 
         Returns:
             bool: true if the number appears only once
@@ -179,8 +181,8 @@ class Grid:
         number, and is therefore immutable.
 
         Args:
-            x (int): x coordinate (1-N)
-            y (int): y coordinate (1-N)
+            x (int): x coordinate
+            y (int): y coordinate
 
         Returns:
             bool: true if the given position is
@@ -196,7 +198,8 @@ class Grid:
         """
 
         return self.grid == self.solution
-
+    
+    # TODO: Delete this method
     def num_empty_spaces(self) -> int:
         """Gets the number of empty spaces in
         the grid.
@@ -215,8 +218,8 @@ class Grid:
         """Checks if a given number is used in a given row.
 
         Args:
-            row (int): row number (1-N)
-            num (int): number to check for (1-N)
+            row (int): row number
+            num (int): number to check for
 
         Returns:
             bool: true if the number is used in the given row
@@ -227,8 +230,8 @@ class Grid:
         """Checks if a given number is used in a given column.
 
         Args:
-            column (int): column number (1-N)
-            num (int): number to check for (1-N)
+            column (int): column number
+            num (int): number to check for
 
         Returns:
             bool: true if the number is used in the given column
@@ -240,9 +243,9 @@ class Grid:
         surrounding a given point.
 
         Args:
-            x (int): x coordinate (1-N)
-            y (int): y coordinate (1-N)
-            num (int): number to check for (1-N)
+            x (int): x coordinate
+            y (int): y coordinate
+            num (int): number to check for
 
         Returns:
             bool: true if the number is used in the √N x √N
@@ -275,9 +278,9 @@ class Grid:
         """Inserts a number in the playing grid.
 
         Args:
-            x (int): x coordinate to insert number (1-N)
-            y (int): y coordinate to insert number (1-N)
-            num (int): number to add (1-N)
+            x (int): x coordinate
+            y (int): y coordinate
+            num (int): number
         """
         self.grid[y][x] = num
 
@@ -285,8 +288,8 @@ class Grid:
         """Removes a number from the playing grid.
 
         Args:
-            x (int): x coordinate to remove number (1-N)
-            y (int): y coordinate to remove number (1-N)
+            x (int): x coordinate to remove number
+            y (int): y coordinate to remove number
         """
         self.grid[y][x] = 0
 
@@ -297,54 +300,119 @@ class Grid:
                 if not self.check_if_given(i, j):
                     self.grid[j][i] = 0
 
-    # TODO: Finish write_note_to_grid method
-    def write_note(self, num: int, x: int, y: int) -> None:
-        """Writes a note to a space on the grid.
+    def write_note(self, x: int, y: int, num: int) -> None:
+        """Writes a note to a cell on the grid.
 
         Args:
             num (int): The number to write
-            pos (tuple(int)): The coordinates (x, y) of the space in
-            the NxN grid to be written to
+            x (int): x coordinate
+            y (int): y coordinate
         """
         self.notes[y][x][num - 1] = 1
 
     def remove_note(self, x: int, y: int, num: int) -> None:
+        """Deletes a note from a cell on the grid.
+
+        Args:
+            x (int): x coordinate
+            y (int): y coordinate
+            num (int): number
+        """
         self.notes[y][x][num - 1] = 0
 
     def clear_notes_in_cell(self, x: int, y: int) -> None:
+        """Deletes all notes from a cell.
+
+        Args:
+            x (int): x coordinate
+            y (int): y coordinate
+        """
         self.notes[y][x] = [0 for _ in range(self.N)]
 
     def clear_notes(self) -> None:
-        """Clears notes for all cells in the grid."""
+        """Clears all notes from all cells."""
         for y in range(self.N):
             for x in range(self.N):
                 self.clear_notes_in_cell(x, y)
 
     def get_notes_from_cell(self, x: int, y: int) -> list[int]:
+        """Returns a mask representing the notes in a cell.
+
+        Args:
+            x (int): x coordinate
+            y (int): y coordinate
+
+        Returns:
+            list[int]: mask representing the number notes in the
+            cell (i.e. [1, 1, 0, 0, 1, 1, 0, 0, 0] would mean the
+            cell has notes 1, 2, 5, and 6)
+        """
         return self.notes[y][x]
 
     def get_grid(self) -> tuple[int, int]:
+        """Gets the grid as a 2D list of integers.
+
+        Returns:
+            tuple[int, int]: 2D list of the integers in the grid in
+            row-major order.
+        """
         return self.grid
 
     def get_N(self) -> int:
+        """Gets the value of N.
+
+        Returns:
+            int: N, the number of cells per row
+        """
         return self.N
 
     def get_sqrt_N(self) -> int:
+        """Gets the int value of the square root of N.
+
+        Returns:
+            int: square root of N
+        """
         return self.sqrt_N
 
     def get_selected_cell(self) -> tuple[int, int]:
+        """Gets the coordinate of the selected cell.
+
+        Returns:
+            tuple[int, int]: selected coordinate (x, y)
+        """
         return self.selected
 
     def set_selected_cell(self, selected: tuple[int, int]) -> None:
+        """Sets the selected cell to a specified position (x, y).
+
+        Args:
+            selected (tuple[int, int]): coordinate (x, y)
+        """
         self.selected = selected
 
     def get_focused_cell(self) -> tuple[int, int]:
+        """Gets the coordinate of the focused cell.
+
+        Returns:
+            tuple[int, int]: focused coordinate (x, y)
+        """
         return self.focused
 
     def set_focused_cell(self, focused: tuple[int, int]) -> None:
+        """Sets the focused cell to a specified position (x, y).
+
+        Args:
+            focused (tuple[int, int]): coordinate (x, y)
+        """
         self.focused = focused
 
     def get_solution(self) -> list[list[int]]:
+        """Gets the solution to the puzzle.
+
+        Returns:
+            list[list[int]]: 2D array of integers in the solution
+            in row-major order
+        """
         return self.solution
 
     # TODO: Add compatibility for other size grids
@@ -537,7 +605,7 @@ class UI(object):
             pg.display.update(grid_rects[row][col])
             return
 
-        grid.write_note(num, col, row)
+        grid.write_note(col, row, num)
         UI.draw_note(num)
         UI.draw_blank_grid()
         pg.display.update(grid_rects[row][col])
