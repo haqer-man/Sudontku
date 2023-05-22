@@ -57,8 +57,93 @@ WIN_FONT_PATH = pg.font.match_font('menlo', True)
 
 
 class Grid:
-    """The Grid class provides methods to generate, manage,
-    and play Sudoku games.
+    """A class used to represent a Sudoku grid
+    
+    ...
+    
+        Attributes
+        ----------
+    focused : tuple[int, int]
+        the coordinate of the currently focused cell
+    grid : list[list[int]]
+        the grid to be solved
+    K : int
+        the number of starting numbers to be given to the player
+    mask : list[list[int]]
+        masked list representing whether each cell is immutable
+    N : int
+        the number of cells per row and column
+    notes : list[list[list[int]]]
+        3-dimensional list, holding a masked list of notes for each
+        cell
+    selected : tuple[int, int]
+        the coordinate of the currently selected cell
+    solution : list[list[int]]
+        the fully solved grid
+    sqrt_N : int
+        the square root of N rounded down to the nearest integer
+    
+        Methods
+        -------
+    check_if_given(x: int, y: int) -> bool
+        checks if a given position is immutable
+    check_position(x: int, y: int, num: int) -> bool
+        checks if a number already appears in a row, column, and
+        subgrid
+    clear_all_notes() -> None
+        erases all notes
+    clear_note(x: int, y: int, num: int) -> None
+        erases a note from a cell
+    clear_notes_in_cell(x: int, y: int) -> None
+        erases all notes in a cell
+    clear_nums() -> None
+        resets the grid
+    fill_block(row: int, column: int) -> None
+        fills the values in the subgrid at the given row and column
+    fill_diagonal() -> None
+        fills the top left, center, and bottom right blocks with
+        values
+    fill_remaining(x: int, y: int) -> bool
+        recursively fills the remaining cells in the grid
+    fill_values() -> None
+        assigns values in the grid, solution, and mask
+    get_focused_cell() -> tuple[int, int]
+        returns the coordinate of the currently focused cell
+    get_grid() -> list[list[int]]
+        returns the grid as a 2D list of integers
+    get_N() -> int
+        returns the value of N
+    get_notes_from_cell(x: int, y: int) -> list[int]
+        returns the masked list of notes in a cell
+    get_selected_cell() -> tuple[int, int]
+        returns the position of the currently selected cell
+    get_solution() -> list[list[int]]
+        returns the solution as a 2D list of integers
+    get_sqrt_N() -> int
+        returns the square root of N rounded down to the nearest
+        integer
+    is_solved() -> bool
+        checks if the grid is solved
+    num_empty_spaces() -> int
+        gets the number of empty spaces in the grid
+    remove_K_digits() -> None
+        clears K cells in the grid
+    remove_num(x: int, y: int) -> None
+        clears the cell at a given position
+    set_focused_cell(focused: tuple[int, int]) -> None
+        sets the focused cell to the cell at the given position
+    set_selected_cell(selected: tuple[int, int]) -> None
+        sets the selected cell to the cell at the given position
+    used_in_block(x: int, y: int, num: int) -> bool
+        checks if a number already appears in a subgrid
+    used_in_column(column: int, num: int) -> bool
+        checks if a number already appears in a given column
+    used_in_row(row: int, num: int) -> bool
+        checks if a number already appears in a given row
+    write_note(x: int, y: int, num: int) -> None
+        writes a note to a cell
+    write_num(num: int, x: int, y: int) -> None
+        adds a number to the grid
     """
 
     def __init__(self, N: int, K: int):
@@ -86,18 +171,22 @@ class Grid:
         self.focused = (-1, -1)
         self.N = N
         self.K = K
-
-        self.notes = [[[0 for _ in range(N)]
-                       for _ in range(N)] for _ in range(N)]
         self.sqrt_N = int(math.sqrt(N))
         self.solution = [[0 for _ in range(N)] for _ in range(N)]
         self.grid = [[0 for _ in range(N)] for _ in range(N)]
         self.mask = [[0 for _ in range(N)] for _ in range(N)]
+        self.notes = [
+            [
+                [0 for _ in range(N)]
+                for _ in range(N)
+            ] for _ in range(N)
+        ]
 
     def fill_values(self) -> None:
         """Assigns values to solution, mask, and grid, where solution
         is the solution to the puzzle, mask is an array mask representing
         which values are immutable, and grid is the playing grid."""
+        
         self.fill_diagonal()
 
         self.fill_remaining(self.sqrt_N - 1, 0)
@@ -107,6 +196,7 @@ class Grid:
     def fill_diagonal(self) -> None:
         """Generates values to fill the top left, center,
         and bottom right subgrids."""
+        
         for i in range(0, self.N, self.sqrt_N):
             self.fill_block(i, i)
 
@@ -118,6 +208,7 @@ class Grid:
             column (int): leftmost column number within
             block
         """
+        
         nums = list(range(1, self.N + 1))
         shuffle(nums)
         i = 0
@@ -140,6 +231,7 @@ class Grid:
             bool: True if the base condition has been
             reached, False otherwise
         """
+        
         if y == self.N - 1 and x == self.N:
             return True
 
@@ -172,47 +264,10 @@ class Grid:
             bool: true if the number appears only once
             in the row, column, and subgrid/block
         """
+        
         return (not self.used_in_row(y, num)
                 and not self.used_in_column(x, num)
                 and not self.used_in_block(x, y, num))
-
-    def check_if_given(self, x: int, y: int) -> bool:
-        """Checks if a given position has a starting
-        number, and is therefore immutable.
-
-        Args:
-            x (int): x coordinate
-            y (int): y coordinate
-
-        Returns:
-            bool: true if the given position is
-            immutable
-        """
-        return bool(self.mask[y][x])
-
-    def is_solved(self) -> bool:
-        """Checks if the board is solved.
-
-        Returns:
-            bool: true if the board is solved
-        """
-
-        return self.grid == self.solution
-    
-    # TODO: Delete this method
-    def num_empty_spaces(self) -> int:
-        """Gets the number of empty spaces in
-        the grid.
-
-        Returns:
-            int: the number of spaces with a 0
-            on the board
-        """
-        filled = [
-            [1 if space else 0 for space in row]
-            for row in self.grid
-        ]
-        return self.N ** 2 - sum([sum(row) for row in filled])
 
     def used_in_row(self, row: int, num: int) -> bool:
         """Checks if a given number is used in a given row.
@@ -224,6 +279,7 @@ class Grid:
         Returns:
             bool: true if the number is used in the given row
         """
+        
         return self.solution[row].count(num) != 0
 
     def used_in_column(self, column: int, num: int) -> bool:
@@ -236,6 +292,7 @@ class Grid:
         Returns:
             bool: true if the number is used in the given column
         """
+        
         return [row[column] for row in self.solution].count(num) != 0
 
     def used_in_block(self, x: int, y: int, num: int) -> bool:
@@ -251,6 +308,7 @@ class Grid:
             bool: true if the number is used in the √N x √N
             block surrounding the position (x, y)
         """
+        
         left = x - x % self.sqrt_N
         top = y - y % self.sqrt_N
 
@@ -260,10 +318,48 @@ class Grid:
                     return True
 
         return False
+    
+    def check_if_given(self, x: int, y: int) -> bool:
+        """Checks if a given position has a starting
+        number, and is therefore immutable.
+
+        Args:
+            x (int): x coordinate
+            y (int): y coordinate
+
+        Returns:
+            bool: true if the given position is
+            immutable
+        """
+        
+        return bool(self.mask[y][x])
+
+    def is_solved(self) -> bool:
+        """Checks if the board is solved.
+
+        Returns:
+            bool: true if the board is solved
+        """
+
+        return self.grid == self.solution
+
+    def num_empty_spaces(self) -> int:
+        """Gets the number of empty cells in the grid
+
+        Returns:
+            int: the number of empty cells in the grid
+        """
+        
+        filled = [
+            [1 if space else 0 for space in row]
+            for row in self.grid
+        ]
+        return self.N ** 2 - sum([sum(row) for row in filled])
 
     def remove_K_digits(self) -> None:
         """Removes K digits from the grid to create the
         playing grid."""
+        
         used = []
         i = 0
         while i < self.K:
@@ -282,6 +378,7 @@ class Grid:
             y (int): y coordinate
             num (int): number
         """
+        
         self.grid[y][x] = num
 
     def remove_num(self, x: int, y: int) -> None:
@@ -291,6 +388,7 @@ class Grid:
             x (int): x coordinate to remove number
             y (int): y coordinate to remove number
         """
+        
         self.grid[y][x] = 0
 
     def clear_nums(self) -> None:
@@ -308,9 +406,10 @@ class Grid:
             x (int): x coordinate
             y (int): y coordinate
         """
+        
         self.notes[y][x][num - 1] = 1
 
-    def remove_note(self, x: int, y: int, num: int) -> None:
+    def clear_note(self, x: int, y: int, num: int) -> None:
         """Deletes a note from a cell on the grid.
 
         Args:
@@ -318,6 +417,7 @@ class Grid:
             y (int): y coordinate
             num (int): number
         """
+        
         self.notes[y][x][num - 1] = 0
 
     def clear_notes_in_cell(self, x: int, y: int) -> None:
@@ -327,10 +427,12 @@ class Grid:
             x (int): x coordinate
             y (int): y coordinate
         """
+        
         self.notes[y][x] = [0 for _ in range(self.N)]
 
-    def clear_notes(self) -> None:
+    def clear_all_notes(self) -> None:
         """Clears all notes from all cells."""
+        
         for y in range(self.N):
             for x in range(self.N):
                 self.clear_notes_in_cell(x, y)
@@ -347,15 +449,17 @@ class Grid:
             cell (i.e. [1, 1, 0, 0, 1, 1, 0, 0, 0] would mean the
             cell has notes 1, 2, 5, and 6)
         """
+        
         return self.notes[y][x]
 
-    def get_grid(self) -> tuple[int, int]:
+    def get_grid(self) -> list[list[int]]:
         """Gets the grid as a 2D list of integers.
 
         Returns:
             tuple[int, int]: 2D list of the integers in the grid in
             row-major order.
         """
+        
         return self.grid
 
     def get_N(self) -> int:
@@ -364,6 +468,7 @@ class Grid:
         Returns:
             int: N, the number of cells per row
         """
+        
         return self.N
 
     def get_sqrt_N(self) -> int:
@@ -372,6 +477,7 @@ class Grid:
         Returns:
             int: square root of N
         """
+        
         return self.sqrt_N
 
     def get_selected_cell(self) -> tuple[int, int]:
@@ -380,6 +486,7 @@ class Grid:
         Returns:
             tuple[int, int]: selected coordinate (x, y)
         """
+        
         return self.selected
 
     def set_selected_cell(self, selected: tuple[int, int]) -> None:
@@ -388,6 +495,7 @@ class Grid:
         Args:
             selected (tuple[int, int]): coordinate (x, y)
         """
+        
         self.selected = selected
 
     def get_focused_cell(self) -> tuple[int, int]:
@@ -396,6 +504,7 @@ class Grid:
         Returns:
             tuple[int, int]: focused coordinate (x, y)
         """
+        
         return self.focused
 
     def set_focused_cell(self, focused: tuple[int, int]) -> None:
@@ -404,6 +513,7 @@ class Grid:
         Args:
             focused (tuple[int, int]): coordinate (x, y)
         """
+        
         self.focused = focused
 
     def get_solution(self) -> list[list[int]]:
@@ -413,6 +523,7 @@ class Grid:
             list[list[int]]: 2D array of integers in the solution
             in row-major order
         """
+        
         return self.solution
 
     # TODO: Add compatibility for other size grids
@@ -422,6 +533,8 @@ class UI(object):
     # TODO: write docstring
 
     def draw_menu() -> None:
+        """Draws the menu, consisting of the background Surface."""
+        
         global background
         background = pg.Surface(SIZE).convert_alpha()
         background.fill((*WHITE, 255))
@@ -431,26 +544,31 @@ class UI(object):
         pg.display.flip()
 
     def draw_background() -> None:
+        """Draws the background, consisting of the header, play
+        button, and exit button."""
+        
         UI.draw_header()
         UI.draw_menu_buttons()
 
         screen.blit(background, (0, 0))
 
     def draw_header() -> None:
-        # TODO: write docstring
-
+        """Draws the header."""
+        
         global header_rect_bottom
 
         font = pg.font.Font(MAIN_FONT_PATH, MAIN_FONT_SIZE)
-        text = font.render("Play Sudoku or Let the Computer Play", True, BLACK)
+        #text = font.render("Play Sudoku or Let the Computer Play", True, BLACK)
+        text = font.render("Play Sudoku", True, BLACK)
         y = 10
         textpos = text.get_rect(centerx=WIDTH/2, y=y)
         header_rect_bottom = textpos.height + y
         background.blit(text, textpos)
 
     def generate_blank_grid() -> None:
-        # TODO: write docstring
-
+        """Creates the global Surface variable blank_grid,
+        which has the grid lines drawn in it."""
+        
         global blank_grid
         blank_grid = pg.Surface(
             (GRID_DIMENSION+3, GRID_DIMENSION+3)).convert_alpha()
@@ -475,6 +593,9 @@ class UI(object):
             )
 
     def generate_grid_rects() -> None:
+        """Creates global list of Rectangle objects grid_rects,
+        used for coloring cells."""
+        
         global grid_rects
 
         font = pg.font.Font(NUM_FONT_PATH, NUM_FONT_SIZE)
@@ -497,7 +618,14 @@ class UI(object):
                 )
             grid_rects.append(row_rects)
 
+    def draw_blank_grid() -> None:
+        """Draws blank_grid Surface to screen."""
+        
+        screen.blit(blank_grid, UI.get_grid_pos())
+
     def draw_grid() -> None:
+        """Draws all numbers into the grid."""
+        
         pg.draw.rect(screen, WHITE, blank_grid.get_rect(
             topleft=UI.get_grid_pos()))
         UI.draw_blank_grid()
@@ -524,6 +652,12 @@ class UI(object):
         pg.display.update(blank_grid.get_rect(topleft=UI.get_grid_pos()))
 
     def draw_num(num: int) -> None:
+        """Draws a number to the selected cell.
+
+        Args:
+            num (int): number to draw
+        """
+        
         col, row = grid.get_selected_cell()
         if (col, row) == (-1, -1):
             return
@@ -544,11 +678,18 @@ class UI(object):
 
         pg.display.update(cell_rect)
 
-        print(grid.is_solved())
         if grid.is_solved():
             UI.win()
 
     def draw_num_to_cell(num: int, col: int, row: int) -> None:
+        """Draws a number to the cell at a given coordinate.
+
+        Args:
+            num (int): number
+            col (int): x coordinate
+            row (int): y coordinate
+        """
+        
         # TODO: remove num from notes in row, column, and subgrid when new num is played
         if num == 0:
             UI.draw_notes((col, row))
@@ -568,6 +709,8 @@ class UI(object):
         screen.blit(num_text, num_pos)
 
     def delete_num() -> None:
+        """Clears a cell."""
+        
         col, row = grid.get_selected_cell()
         if (col, row) == (-1, -1):
             return
@@ -582,14 +725,24 @@ class UI(object):
     # TODO: add buffer for undo
 
     def clear() -> None:
+        """Clears all mutable cells."""
+        
         grid.clear_nums()
-        grid.clear_notes()
+        grid.clear_all_notes()
         grid.set_selected_cell((-1, -1))
         UI.draw_grid()
         UI.focus_cell()
         pg.display.update(blank_grid.get_rect(topleft=UI.get_grid_pos()))
 
     def toggle_note(num: int, pos: tuple[int, int] = None) -> None:
+        """Toggles the note for a given number in a cell at a given position.
+
+        Args:
+            num (int): number to toggle
+            pos (tuple[int, int], optional): coordinate (x, y).
+            Defaults to None.
+        """
+        
         col, row = pos if pos else grid.get_selected_cell()
         if (col, row) == (-1, -1):
             return
@@ -598,7 +751,7 @@ class UI(object):
             return
 
         if grid.get_notes_from_cell(col, row)[num - 1] == 1:
-            grid.remove_note(col, row, num)
+            grid.clear_note(col, row, num)
             pg.draw.rect(screen, DIM_GRAY, grid_rects[row][col])
             UI.draw_notes()
             UI.draw_blank_grid()
@@ -611,6 +764,14 @@ class UI(object):
         pg.display.update(grid_rects[row][col])
 
     def draw_note(num: int, pos: tuple[int, int] = None) -> None:
+        """Draws a note for a given number in a cell at a given position.
+
+        Args:
+            num (int): number to draw
+            pos (tuple[int, int], optional): coordinate (x, y).
+            Defaults to None.
+        """
+        
         col, row = pos if pos else grid.get_selected_cell()
 
         if grid.get_grid()[row][col] == 1:
@@ -631,6 +792,13 @@ class UI(object):
         screen.blit(note_text, textpos)
 
     def draw_notes(pos: tuple[int, int] = None) -> None:
+        """Draws all notes in a given cell.
+
+        Args:
+            pos (tuple[int, int], optional): coordinate (x, y).
+            Defaults to selected cell.
+        """
+        
         x, y = pos if pos else grid.get_selected_cell()
         notes = grid.get_notes_from_cell(x, y)
 
@@ -639,6 +807,8 @@ class UI(object):
                 UI.draw_note(i + 1, (x, y))
 
     def clear_notes() -> None:
+        """Removes all notes from selected cell."""
+        
         x, y = grid.get_selected_cell()
 
         if (x, y) == (-1, -1):
@@ -649,10 +819,9 @@ class UI(object):
         UI.draw_blank_grid()
         pg.display.update(grid_rects[y][x])
 
-    def draw_blank_grid() -> None:
-        screen.blit(blank_grid, UI.get_grid_pos())
-
     def focus_cell() -> None:
+        """Focuses the cell that the mouse is currently on."""
+        
         if not UI.mouse_in_grid():
             UI.unfocus_cell()
             return
@@ -682,6 +851,13 @@ class UI(object):
         pg.display.update(grid_rects[prev_y][prev_x])
 
     def unfocus_cell(pos: tuple[int, int] = None) -> None:
+        """Unfocuses a cell.
+
+        Args:
+            pos (tuple[int, int], optional): coordinate (x, y).
+            Defaults to currently focused cell.
+        """
+        
         x, y = pos if pos else grid.get_focused_cell()
         if (x, y) == (-1, -1):
             return
@@ -691,6 +867,13 @@ class UI(object):
         grid.set_focused_cell((-1, -1))
 
     def select_cell(pos: tuple[int, int] = None) -> None:
+        """Selects a cell.
+
+        Args:
+            pos (tuple[int, int], optional): coordinate (x, y).
+            Defaults to the cell the mouse is on.
+        """
+        
         # TODO: highlight all of the same number in the grid
         x, y = pos if pos else UI.get_pos_from_mouse()
         if grid.check_if_given(x, y):
@@ -715,18 +898,34 @@ class UI(object):
         pg.display.update(grid_rects[prev_y][prev_x])
 
     def move_left() -> None:
+        """Selects the cell one space to the left. If the cell
+        to the left is immutable, moves to the next cell to the
+        left that is mutable."""
+        
         pass
 
     def move_right() -> None:
+        """Selects the cell one space to the right. If the cell
+        to the right is immutable, moves to the next cell to the
+        right that is mutable."""
+        
         pass
 
     def move_up() -> None:
+        """Selects the cell one space up. If the cell is immutable
+        moves up until a mutable cell is selected."""
+        
         pass
 
     def move_down() -> None:
+        """Selects the cell one space down. If the cell is immutable,
+        moves down until a mutable cell is selected."""
+        
         pass
 
     def unselect_cell() -> None:
+        """Unselects the currently selected cell."""
+        
         x, y = grid.get_selected_cell()
         if (x, y) == (-1, -1):
             return
@@ -735,6 +934,13 @@ class UI(object):
         UI.draw_num_to_cell(grid.get_grid()[y][x], x, y)
 
     def mouse_in_grid() -> bool:
+        """Checks whether the mouse is within the grid.
+
+        Returns:
+            bool: True if the mouse is within the edges of
+            the grid, False otherwise.
+        """
+        
         left, top = UI.get_grid_pos()
         return blank_grid.get_rect(
             topleft=(left+3, top+3),
@@ -743,6 +949,13 @@ class UI(object):
         ).contains((*pg.mouse.get_pos(), 0, 0))
 
     def get_pos_from_mouse() -> tuple[int, int]:
+        """Returns the grid coordinate based on the mouse
+        position.
+
+        Returns:
+            tuple[int, int]: coordinate (x, y)
+        """
+        
         top, left = UI.get_grid_pos()[::-1]
         mouse_x, mouse_y = pg.mouse.get_pos()
 
@@ -762,6 +975,9 @@ class UI(object):
         return x, y
 
     def get_grid_pos() -> tuple[int | float, int | float]:
+        """Returns the topleft coordinate of the grid
+        on the screen."""
+        
         x = (WIDTH - blank_grid.get_rect().width) / 2
         y = header_rect_bottom + \
             ((play_button_rect.top - header_rect_bottom -
@@ -769,32 +985,54 @@ class UI(object):
         return (x, y)
 
     def draw_menu_buttons() -> None:
-        # TODO: write docstring
-
+        """Draws the play and exit buttons."""
+        
         UI.draw_exit_button()
         UI.draw_play_button()
 
     def draw_game_buttons() -> None:
+        """Draws the clear and note buttons."""
+        
         UI.draw_clear_button()
         UI.draw_note_button()
 
     def draw_button_rect(rect: pg.Rect, color: tuple[int, int, int]) -> None:
+        """Draws a given rectangle in a given color. Used to
+        more easily change the color of buttons.
+
+        Args:
+            rect (pg.Rect): rectangle object for button
+            color (tuple[int, int, int]): RGB color
+        """
+        
         pg.draw.rect(screen, color, rect, 0, 3)
 
     def draw_play_button() -> None:
-        # TODO write docstring
-
+        """Draws the play button."""
+        
         text, textpos = UI.generate_play_text()
 
         UI.draw_button_rect(play_button_rect, LIGHT_BLUE)
         screen.blit(text, textpos)
         pg.display.update(play_button_rect)
 
-    def generate_play_text() -> tuple[pg.Rect, pg.Rect]:
+    def generate_play_text() -> tuple[pg.Surface, pg.Rect]:
+        """Creates the text Surface and textpos Rect
+        objects for the play button.
+
+        Returns:
+            tuple[pg.Rect, pg.Rect]:
+            
+                text (pg.Surface): Surface object containing
+                "New game" rendered in BUTTON_FONT at
+                BUTTON_FONT_SIZE px size
+                textpos (pg.Rect): 'Rect' object containing the
+                bounding rect of the text where it should be
+        """
+        
         global play_button_rect
 
-        font = pg.font.Font(BUTTON_FONT_PATH, 36)
-        text = font.render("New game", True, (*BLACK, 255))
+        text = BUTTON_FONT.render("New game", True, (*BLACK, 255))
         y = exit_button_rect.top - 5 - Y_PADDING - text.get_height()
         textpos = text.get_rect(centerx=WIDTH/2, y=y)
 
@@ -982,9 +1220,6 @@ def play() -> None:
         grid.fill_values()
         UI.generate_grid_rects()
         UI.draw_grid()
-        for row in grid.get_solution():
-            print(row)
-        print()
 
     note = False
     solved = False
