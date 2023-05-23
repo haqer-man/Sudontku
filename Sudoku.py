@@ -1182,23 +1182,36 @@ class UI(object):
 
     def hide_mouse() -> None:
         """Hides the mouse and moves the cursor to
-        (0, 0)."""
-
-        global hide_mouse_pos
-    
-        pg.mouse.set_visible(False)
+        (6, 6)."""
         
-        if pg.mouse.get_pos() == (0, 0):
+        global hidden_mouse_pos
+        
+        pg.mouse.set_visible(False)
+        pg.display.flip()
+        
+        pos = mouse_x, mouse_y = pg.mouse.get_pos()
+        
+        if pos == (6, 6):
             return
         
-        hide_mouse_pos = pg.mouse.get_pos()
-        pg.mouse.set_pos((0, 0))
+        x, y = grid.get_selected_cell()
+        
+        hidden_mouse_x = mouse_x - grid_rects[y][x].left
+        hidden_mouse_y = mouse_y - grid_rects[y][x].top
+        
+        hidden_mouse_pos = (hidden_mouse_x, hidden_mouse_y)
+        
+        pg.mouse.set_pos((6, 6))
 
     def unhide_mouse() -> None:
         """Unhides the mouse and moves the cursor to
-        where it was when it was hidden."""
+        the currently selected cell."""
         
-        pg.mouse.set_pos(hide_mouse_pos)
+        x, y = grid.get_selected_cell()
+        
+        _x, _y = grid_rects[y][x].topleft
+                
+        pg.mouse.set_pos((_x + hidden_mouse_pos[0], _y + hidden_mouse_pos[1]))
         pg.mouse.set_visible(True)
 
     def move_left() -> None:
@@ -1209,18 +1222,20 @@ class UI(object):
         x, y = grid.get_selected_cell()
         if (x, y) == (-1, -1):
             return
+        
+        _x, _y = x, y
 
         UI.hide_mouse()
-        if x <= 0:
-            x = 8
-        else:
-            x -= 1
 
-        while grid.check_if_given(x, y):
-            if x <= 0:
-                x = 8
+        while grid.check_if_given(_x, _y) or (_x, _y) == (x, y):
+            if _x == 0:
+                _x = 8
+                if _y == 0:
+                    _y = 8
+                else:
+                    _y -= 1
             else:
-                x -= 1
+                _x -= 1
 
         UI.select_cell((x, y))
 
@@ -1232,20 +1247,22 @@ class UI(object):
         x, y = grid.get_selected_cell()
         if (x, y) == (-1, -1):
             return
+        
+        _x, _y = x, y
 
         UI.hide_mouse()
-        if x == 8:
-            x = 0
-        else:
-            x += 1
 
-        while grid.check_if_given(x, y):
-            if x == 8:
-                x = 0
+        while grid.check_if_given(_x, _y) or (_x, _y) == (x, y):
+            if _x == 8:
+                _x = 0
+                if _y == 8:
+                    _y = 0
+                else:
+                    _y += 1
             else:
-                x += 1
+                _x += 1
 
-        UI.select_cell((x, y))
+        UI.select_cell((_x, _y))
 
     def move_up() -> None:
         """Selects the cell one space up. If the cell is immutable
@@ -1255,19 +1272,21 @@ class UI(object):
         if (x, y) == (-1, -1):
             return
 
+        _x, _y = x, y
+
         UI.hide_mouse()
-        if y == 0:
-            y = 8
-        else:
-            y -= 1
 
-        while grid.check_if_given(x, y):
-            if y == 0:
-                y = 8
+        while grid.check_if_given(_x, _y) or (_x, _y) == (x, y):
+            if _y == 0:
+                _y = 8
+                if _x == 0:
+                    _x = 8
+                else:
+                    _x -= 1
             else:
-                y -= 1
+                _y -= 1
 
-        UI.select_cell((x, y))
+        UI.select_cell((_x, _y))
 
     def move_down() -> None:
         """Selects the cell one space down. If the cell is immutable,
@@ -1277,19 +1296,21 @@ class UI(object):
         if (x, y) == (-1, -1):
             return
 
+        _x, _y = x, y
+
         UI.hide_mouse()
-        if y == 8:
-            y = 0
-        else:
-            y += 1
 
-        while grid.check_if_given(x, y):
-            if y == 8:
-                y = 0
+        while grid.check_if_given(_x, _y) or (_x, _y) == (x, y):
+            if _y == 8:
+                _y = 0
+                if _x == 8:
+                    _x = 0
+                else:
+                    _x += 1
             else:
-                y += 1
+                _y += 1
 
-        UI.select_cell((x, y))
+        UI.select_cell((_x, _y))
 
     def mouse_in_grid() -> bool:
         """
@@ -1730,7 +1751,8 @@ def play() -> None:
                     UI.focus_note_button()
 
             elif event.type == pg.MOUSEBUTTONDOWN:
-                if not pg.mouse.get_visible():
+                if not pg.mouse.get_visible(): # used to prevent NameError
+                    print("mouse pressed")
                     UI.unhide_mouse()
 
                 if UI.mouse_on_exit_button():
@@ -1784,9 +1806,10 @@ def play() -> None:
                     UI.move_up()
                 elif event.key == pg.K_DOWN:
                     UI.move_down()
-            elif (in_game
-                  and event.type == pg.MOUSEMOTION
-                  and not pg.mouse.get_visible()):
+            elif (in_game and not pg.mouse.get_visible()
+                  and event.type == pg.MOUSEMOTION and
+                  (event.rel[0] >= 5 or event.rel[0] <= -5) and 
+                  (event.rel[1] >= 5 or event.rel[1] <= -5)):
                 UI.unhide_mouse()
             else:
                 if UI.mouse_on_exit_button():
