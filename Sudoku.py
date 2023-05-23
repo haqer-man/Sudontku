@@ -63,7 +63,7 @@ class Grid:
     ...
 
         Attributes
-        ----------
+        ==========
     focused : tuple[int, int]
         the coordinate of the currently focused cell
     grid : list[list[int]]
@@ -87,7 +87,7 @@ class Grid:
     ...
 
         Methods
-        -------
+        =======
     check_if_given(x: int, y: int) -> bool
         checks if a given position is immutable
     check_position(x: int, y: int, num: int) -> bool
@@ -629,7 +629,155 @@ class Grid:
 
 
 class UI(object):
-    # TODO: write docstring
+    """
+    A class used to interact with the display.
+
+    ...
+
+    Globals
+    =======
+    background : Surface
+        a Surface object containing the menu buttons and header
+    blank_grid : Surface
+        a Surface object containing the blank Sudoku grid
+    clear_button_rect : Rect
+        the bounding rectangle for the clear button
+    exit_button_rect : Rect
+        the bounding rectangle for the exit button
+    grid_rects : Rect
+        a list of grid cell rectangles
+    header_rect_bottom : int
+        the y coordinate of the bottom of the bounding
+        rectangle of the header
+    note_button_rect : Rect
+        the bounding rectangle for the note button
+    play_button_rect : Rect
+        the bounding rectangle for the play button
+
+    ...
+
+    Methods
+    =======
+    clear() -> None
+        resets the grid
+    clear_button_clicked() -> None
+        darkens the clear button when clicked
+    clear_notes() -> None
+        removes all notes from a cell
+    delete_num() -> None
+        clears a cell
+    draw_background() -> None
+        draws the background
+    draw_blank_grid() -> None
+        draws the blank grid
+    draw_button_rect(rect: pg.Rect, color: tuple[int, int, int])
+    -> None
+        draws the given bounding rectangle in a given color
+    draw_clear_button() -> Nnoe
+        draws the clear button
+    draw_exit_button() -> None
+        draws the exit button
+    draw_game_buttons() -> None
+        draws the clear and note buttons
+    draw_nums_to_grid() -> None
+        draws the numbers to the grid
+    draw_header() -> None
+        draws the game header
+    draw_menu() -> None
+        draws the background
+    draw_menu_buttons() -> None
+        draws the exit and play buttons
+    draw_note(num: int, pos: tuple[int, int] = None) -> None
+        draws a the given number at a position as a note
+    draw_note_button() -> None
+        draws the note button
+    draw_notes(pos: tuple[int, int] = None) -> None
+        draws all notes for a given cell
+    draw_num(num: int) -> None
+        draws a number to the currently selected cell
+    draw_num_to_cell(num: int, col: int, row: int) -> None
+        draws a number to the cell at the given position.
+        If the cell is empty, draws the cell's notes
+    draw_play_button() -> None
+        draws the play button
+    exit_button_clicked() -> None
+        darkens the exit button when clicked
+    focus_cell() -> None
+        focuses the cell located at the mouse's current
+        position
+    focus_clear_button() -> None
+        dims the clear button
+    focus_exit_button() -> None
+        dims the exit button
+    focus_note_button() -> None
+        dims the note button
+    focus_play_button() -> None
+        dims the play button
+    generate_blank_grid() -> None
+        initializes the global blank_grid variable
+    generate_clear_text() -> tuple[Surface, Rect]
+        creates the clear button text and its bounding
+        rectangle
+    generate_exit_text() -> tuple[Surface, Rect]
+        creates the exit button text and its bounding
+        rectangle
+    generate_grid_rects() -> None
+        initializes the global grid_rects variable to
+        contain bounding rectangles for each cell in
+        the grid
+    generate_note_text() -> tuple[Surface, Rect]
+        creates the note text and its bounding
+        rectangle
+    generate_play_text() -> tuple[Surface, Rect]
+        creates the play text and its bounding
+        rectangle
+    get_grid_pos() -> tuple[int | float, int | float]
+        returns the coordinate of the top left corner
+        of the grid
+    get_pos_from_mouse() -> tuple[int, int]
+        returns the coordinate of the cell the mouse
+        is currently in
+    mouse_in_grid() -> bool
+        checks if the mouse is within the grid
+    mouse_on_clear_button() -> bool
+        checks if the mouse is within the clear
+        button
+    mouse_on_exit_button() -> bool
+        checks if the mouse is within the exit
+        button
+    mouse_on_note_button() -> bool
+        checks if the mouse is within the note
+        button
+    mouse_on_play_button() -> bool
+        checks if the mouse is within the play
+        button
+    move_down() -> None
+        moves down one cell
+    move_left() -> None
+        moves left one cell
+    move_right() -> None
+        moves right one cell
+    move_up() -> None
+        moves up one cell
+    note_button_clicked() -> None
+        darkens note button when clicked
+    play_button_clicked() -> None
+        darkens play button when clicked
+    select_cell(pos: tuple[int, int] = None) -> None
+        selects a cell
+    toggle_note(num: int, pos: tuple[int, int] = None)
+    -> None
+        toggles the note for a given number in the
+        cell at a given position
+    unfocus_cell(pos: tuple[int, int] = None) -> None
+        unfocuses a cell
+    unselect_cell() -> None
+        unfocuses the currently selected cell
+    win() -> None
+        displays victory text over the grid and
+        sets 'solved' to True to stop inner game
+        loop
+    """
 
     def draw_menu() -> None:
         """Draws the menu, consisting of the background Surface."""
@@ -661,7 +809,7 @@ class UI(object):
         text = font.render("Play Sudoku", True, BLACK)
         y = 10
         textpos = text.get_rect(centerx=WIDTH/2, y=y)
-        header_rect_bottom = textpos.height + y
+        header_rect_bottom = textpos.bottom
         background.blit(text, textpos)
 
     def generate_blank_grid() -> None:
@@ -722,7 +870,7 @@ class UI(object):
 
         screen.blit(blank_grid, UI.get_grid_pos())
 
-    def draw_grid() -> None:
+    def draw_nums_to_grid() -> None:
         """Draws all numbers into the grid."""
 
         pg.draw.rect(screen, WHITE, blank_grid.get_rect(
@@ -837,7 +985,7 @@ class UI(object):
         grid.clear_nums()
         grid.clear_all_notes()
         grid.set_selected_cell((-1, -1))
-        UI.draw_grid()
+        UI.draw_nums_to_grid()
         UI.focus_cell()
         pg.display.update(blank_grid.get_rect(topleft=UI.get_grid_pos()))
 
@@ -906,7 +1054,7 @@ class UI(object):
 
     def draw_notes(pos: tuple[int, int] = None) -> None:
         """
-        Draws all notes in a given cell.
+        Draws all notes in the cell at a given position.
 
         Parameters
         ----------
@@ -1017,6 +1165,16 @@ class UI(object):
         pg.display.update(grid_rects[y][x])
         pg.display.update(grid_rects[prev_y][prev_x])
 
+    def unselect_cell() -> None:
+        """Unselects the currently selected cell."""
+
+        x, y = grid.get_selected_cell()
+        if (x, y) == (-1, -1):
+            return
+
+        pg.draw.rect(screen, WHITE, grid_rects[y][x])
+        UI.draw_num_to_cell(grid.get_grid()[y][x], x, y)
+        
     def move_left() -> None:
         """Selects the cell one space to the left. If the cell
         to the left is immutable, moves to the next cell to the
@@ -1042,16 +1200,6 @@ class UI(object):
         moves down until a mutable cell is selected."""
 
         pass
-
-    def unselect_cell() -> None:
-        """Unselects the currently selected cell."""
-
-        x, y = grid.get_selected_cell()
-        if (x, y) == (-1, -1):
-            return
-
-        pg.draw.rect(screen, WHITE, grid_rects[y][x])
-        UI.draw_num_to_cell(grid.get_grid()[y][x], x, y)
 
     def mouse_in_grid() -> bool:
         """
@@ -1456,7 +1604,7 @@ def play() -> None:
         grid = Grid(N, K)
         grid.fill_values()
         UI.generate_grid_rects()
-        UI.draw_grid()
+        UI.draw_nums_to_grid()
 
     note = False
     solved = False
