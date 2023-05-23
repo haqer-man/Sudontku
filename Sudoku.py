@@ -737,6 +737,9 @@ class UI(object):
     get_pos_from_mouse() -> tuple[int, int]
         returns the coordinate of the cell the mouse
         is currently in
+    hide_mouse() -> None
+        hides the mouse cursor and moves it to the top
+        left corner of the screen
     mouse_in_grid() -> bool
         checks if the mouse is within the grid
     mouse_on_clear_button() -> bool
@@ -1174,32 +1177,91 @@ class UI(object):
 
         pg.draw.rect(screen, WHITE, grid_rects[y][x])
         UI.draw_num_to_cell(grid.get_grid()[y][x], x, y)
+    
+    def hide_mouse() -> None:
+        """Hides the mouse and moves the cursor to
+        (0, 0)."""
+        
+        pg.mouse.set_visible(False)
+        pg.mouse.set_pos((0, 0))
         
     def move_left() -> None:
         """Selects the cell one space to the left. If the cell
         to the left is immutable, moves to the next cell to the
         left that is mutable."""
 
-        pass
+        x, y = grid.get_selected_cell()
+        if (x, y) == (-1, -1):
+            return
+        
+        UI.hide_mouse()
+        x -= 1
+            
+        while grid.check_if_given(x, y):
+            if x <= 0:
+                x = 8
+            else:
+                x -= 1
+        
+        UI.select_cell((x, y))
 
     def move_right() -> None:
         """Selects the cell one space to the right. If the cell
         to the right is immutable, moves to the next cell to the
         right that is mutable."""
 
-        pass
+        x, y = grid.get_selected_cell()
+        if (x, y) == (-1, -1):
+            return
+        
+        UI.hide_mouse()
+        x += 1
+        
+        while grid.check_if_given(x, y):
+            if x >= 8:
+                x = 0
+            else:
+                x += 1
+            
+        UI.select_cell((x, y))
 
     def move_up() -> None:
         """Selects the cell one space up. If the cell is immutable
         moves up until a mutable cell is selected."""
 
-        pass
+        x, y = grid.get_selected_cell()
+        if (x, y) == (-1, -1):
+            return
+        
+        UI.hide_mouse()
+        y -= 1
+        
+        while grid.check_if_given(x, y):
+            if y <= 0:
+                y = 8
+            else:
+                y -= 1
+        
+        UI.select_cell((x, y))
 
     def move_down() -> None:
         """Selects the cell one space down. If the cell is immutable,
         moves down until a mutable cell is selected."""
 
-        pass
+        x, y = grid.get_selected_cell()
+        if (x, y) == (-1, -1):
+            return
+        
+        UI.hide_mouse()
+        y += 1
+        
+        while grid.check_if_given(x, y):
+            if y >= 8:
+                y = 0
+            else:
+                y += 1
+                
+        UI.select_cell((x, y))
 
     def mouse_in_grid() -> bool:
         """
@@ -1675,10 +1737,22 @@ def play() -> None:
                     UI.note_button_clicked()
 
             elif in_game and event.type == pg.KEYUP:
+                if pg.K_RIGHT <= event.key <= pg.K_UP:
+                    UI.hide_mouse()
+                    
                 if event.key == 110:
                     note = not note
                     sleep(0.05)
                     UI.draw_note_button()
+                    
+                elif event.key == pg.K_RIGHT:
+                    UI.move_right()
+                elif event.key == pg.K_LEFT:
+                    UI.move_left()
+                elif event.key == pg.K_UP:
+                    UI.move_up()
+                elif event.key == pg.K_DOWN:
+                    UI.move_down()
 
             else:
                 if UI.mouse_on_exit_button():
