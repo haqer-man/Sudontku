@@ -774,6 +774,8 @@ class UI(object):
         cell at a given position
     unfocus_cell(pos: tuple[int, int] = None) -> None
         unfocuses a cell
+    unhide_mouse() -> None
+        unhides the mouse
     unselect_cell() -> None
         unfocuses the currently selected cell
     win() -> None
@@ -1177,14 +1179,28 @@ class UI(object):
 
         pg.draw.rect(screen, WHITE, grid_rects[y][x])
         UI.draw_num_to_cell(grid.get_grid()[y][x], x, y)
-    
+
     def hide_mouse() -> None:
         """Hides the mouse and moves the cursor to
         (0, 0)."""
-        
+
+        global hide_mouse_pos
+    
         pg.mouse.set_visible(False)
-        pg.mouse.set_pos((0, 0))
         
+        if pg.mouse.get_pos() == (0, 0):
+            return
+        
+        hide_mouse_pos = pg.mouse.get_pos()
+        pg.mouse.set_pos((0, 0))
+
+    def unhide_mouse() -> None:
+        """Unhides the mouse and moves the cursor to
+        where it was when it was hidden."""
+        
+        pg.mouse.set_pos(hide_mouse_pos)
+        pg.mouse.set_visible(True)
+
     def move_left() -> None:
         """Selects the cell one space to the left. If the cell
         to the left is immutable, moves to the next cell to the
@@ -1193,16 +1209,16 @@ class UI(object):
         x, y = grid.get_selected_cell()
         if (x, y) == (-1, -1):
             return
-        
+
         UI.hide_mouse()
         x -= 1
-            
+
         while grid.check_if_given(x, y):
             if x <= 0:
                 x = 8
             else:
                 x -= 1
-        
+
         UI.select_cell((x, y))
 
     def move_right() -> None:
@@ -1213,16 +1229,16 @@ class UI(object):
         x, y = grid.get_selected_cell()
         if (x, y) == (-1, -1):
             return
-        
+
         UI.hide_mouse()
         x += 1
-        
+
         while grid.check_if_given(x, y):
             if x >= 8:
                 x = 0
             else:
                 x += 1
-            
+
         UI.select_cell((x, y))
 
     def move_up() -> None:
@@ -1232,16 +1248,16 @@ class UI(object):
         x, y = grid.get_selected_cell()
         if (x, y) == (-1, -1):
             return
-        
+
         UI.hide_mouse()
         y -= 1
-        
+
         while grid.check_if_given(x, y):
             if y <= 0:
                 y = 8
             else:
                 y -= 1
-        
+
         UI.select_cell((x, y))
 
     def move_down() -> None:
@@ -1251,16 +1267,16 @@ class UI(object):
         x, y = grid.get_selected_cell()
         if (x, y) == (-1, -1):
             return
-        
+
         UI.hide_mouse()
         y += 1
-        
+
         while grid.check_if_given(x, y):
             if y >= 8:
                 y = 0
             else:
                 y += 1
-                
+
         UI.select_cell((x, y))
 
     def mouse_in_grid() -> bool:
@@ -1702,6 +1718,9 @@ def play() -> None:
                     UI.focus_note_button()
 
             elif event.type == pg.MOUSEBUTTONDOWN:
+                if not pg.mouse.get_visible():
+                    UI.unhide_mouse()
+
                 if UI.mouse_on_exit_button():
                     UI.exit_button_clicked()
 
@@ -1739,12 +1758,12 @@ def play() -> None:
             elif in_game and event.type == pg.KEYUP:
                 if pg.K_RIGHT <= event.key <= pg.K_UP:
                     UI.hide_mouse()
-                    
+
                 if event.key == 110:
                     note = not note
                     sleep(0.05)
                     UI.draw_note_button()
-                    
+
                 elif event.key == pg.K_RIGHT:
                     UI.move_right()
                 elif event.key == pg.K_LEFT:
@@ -1753,7 +1772,10 @@ def play() -> None:
                     UI.move_up()
                 elif event.key == pg.K_DOWN:
                     UI.move_down()
-
+            elif (in_game
+                  and event.type == pg.MOUSEMOTION
+                  and not pg.mouse.get_visible()):
+                UI.unhide_mouse()
             else:
                 if UI.mouse_on_exit_button():
                     UI.focus_exit_button()
@@ -1779,7 +1801,6 @@ def play() -> None:
                     UI.draw_note_button()
             if in_game:
                 UI.focus_cell()
-
 
 def main() -> None:
     """Initializes the play function."""
