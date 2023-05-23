@@ -1211,7 +1211,10 @@ class UI(object):
             return
 
         UI.hide_mouse()
-        x -= 1
+        if x <= 0:
+            x = 8
+        else:
+            x -= 1
 
         while grid.check_if_given(x, y):
             if x <= 0:
@@ -1231,10 +1234,13 @@ class UI(object):
             return
 
         UI.hide_mouse()
-        x += 1
+        if x == 8:
+            x = 0
+        else:
+            x += 1
 
         while grid.check_if_given(x, y):
-            if x >= 8:
+            if x == 8:
                 x = 0
             else:
                 x += 1
@@ -1250,10 +1256,13 @@ class UI(object):
             return
 
         UI.hide_mouse()
-        y -= 1
+        if y == 0:
+            y = 8
+        else:
+            y -= 1
 
         while grid.check_if_given(x, y):
-            if y <= 0:
+            if y == 0:
                 y = 8
             else:
                 y -= 1
@@ -1269,10 +1278,13 @@ class UI(object):
             return
 
         UI.hide_mouse()
-        y += 1
+        if y == 8:
+            y = 0
+        else:
+            y += 1
 
         while grid.check_if_given(x, y):
-            if y >= 8:
+            if y == 8:
                 y = 0
             else:
                 y += 1
