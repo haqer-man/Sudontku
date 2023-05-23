@@ -901,7 +901,7 @@ class UI(object):
                 screen.blit(text, textpos)
                 NUM_FONT.set_bold(False)
 
-        pg.display.update(blank_grid.get_rect(topleft=UI.get_grid_pos()))
+        pg.display.flip()
 
     def draw_num(num: int) -> None:
         """
@@ -1188,6 +1188,7 @@ class UI(object):
         
         pg.mouse.set_visible(False)
         pg.display.flip()
+        UI.unfocus_cell()
         
         pos = mouse_x, mouse_y = pg.mouse.get_pos()
         
@@ -1775,10 +1776,7 @@ def play() -> None:
 
             elif in_game and event.type == pg.KEYDOWN:
                 if event.key == pg.K_BACKSPACE:
-                    if note:
-                        UI.delete_num()
-                    else:
-                        UI.delete_num()
+                    UI.delete_num()
 
                 if 49 <= event.key <= 57:
                     if note:
@@ -1788,6 +1786,9 @@ def play() -> None:
 
                 elif event.key == 110:
                     UI.note_button_clicked()
+                    
+                elif pg.K_RIGHT <= event.key <= pg.K_UP:
+                    UI.hide_mouse()
 
             elif in_game and event.type == pg.KEYUP:
                 if pg.K_RIGHT <= event.key <= pg.K_UP:
