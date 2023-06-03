@@ -1,17 +1,3 @@
-"""Sudoku Game
-
-This script allows the user to play Sudoku, or run a backtracking algorithm to autosolve.\
-It is assumed that the user's screen has a resolution of 650x720 or higher.
-
-The script requires that `pygame` be installed within the Python environment you are running\
-it in.
-
-The file can be imported as a module and contains the following functions:
-
-    * clear_grid - clears the play area for a new game
-    * write_to_grid - writes a number to a space in the grid
-    * write_note_to_grid - writes a note to a space in the grid
-    * """  # TODO: finish Docstring header
 # Import Modules
 from random import randint, shuffle
 import math
